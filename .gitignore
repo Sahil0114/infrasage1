@@ -1,0 +1,70 @@
+# =============================================================================
+# InfraSage — .gitignore
+# =============================================================================
+
+# --- Secrets & Config (NEVER commit) -----------------------------------------
+.env
+*.env
+
+# --- Compiled Binary ----------------------------------------------------------
+bin/
+infrasage
+
+# --- Terraform ----------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+crash.log
+crash.*.log
+
+# --- Ollama Model Files (managed by Ollama, never in repo) -------------------
+*.gguf
+*.bin
+*.ggml
+models/
+
+# --- Generated Terraform Files (user-generated, not committed by default) ----
+infra.tf
+# Uncomment the line below to also ignore all generated .tf files:
+# *.tf
+
+# --- Scan Artifacts -----------------------------------------------------------
+/tmp/infrasage-scans/
+
+# --- Go Build Artifacts -------------------------------------------------------
+vendor/
+
+# --- macOS -------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# --- IDE / Editor ------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+
+# --- Test Coverage -----------------------------------------------------------
+coverage.out
+coverage.html
+
+# --- Logs --------------------------------------------------------------------
+*.log

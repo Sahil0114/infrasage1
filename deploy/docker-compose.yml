@@ -1,0 +1,102 @@
+# InfraSage Docker Compose Stack
+# ─────────────────────────────────────────────────────────────────────────────
+# Platform: linux/arm64 (Apple Silicon M2)
+# Ollama is NOT here — it runs natively on macOS for Metal GPU acceleration.
+#
+# Usage:
+#   infrasage stack up        → docker compose up -d
+#   infrasage stack down      → docker compose down
+#   infrasage stack status    → docker compose ps
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Security Scanners ───────────────────────────────────────────────────────
+  # All three scanner containers use `tail -f /dev/null` as their entrypoint.
+  # This keeps the container alive between scans. The CLI uses `docker exec`
+  # to run the actual scan commands against the already-running container,
+  # avoiding the startup overhead of spinning up a new container per scan.
+
+  checkov:
+    image: bridgecrew/checkov:latest
+    platform: linux/arm64
+    container_name: infrasage-checkov
+    entrypoint: ["tail", "-f", "/dev/null"]
+    volumes:
+      - /tmp/infrasage-scans:/scans
+    restart: unless-stopped
+    networks:
+      - infrasage-net
+
+  tfsec:
+    image: aquasec/tfsec:latest
+    platform: linux/arm64
+    container_name: infrasage-tfsec
+    entrypoint: ["tail", "-f", "/dev/null"]
+    volumes:
+      - /tmp/infrasage-scans:/scans
+    restart: unless-stopped
+    networks:
+      - infrasage-net
+
+  terrascan:
+    # tenable/terrascan is the current official image (Tenable acquired Accurics).
+    # No platform constraint here — if linux/arm64 is unavailable it runs under
+    # Rosetta 2 on Apple Silicon, which is acceptable for a scan-only workload.
+    image: tenable/terrascan:latest
+    container_name: infrasage-terrascan
+    entrypoint: ["tail", "-f", "/dev/null"]
+    volumes:
+      - /tmp/infrasage-scans:/scans
+    restart: unless-stopped
+    networks:
+      - infrasage-net
+
+  # ── Monitoring ──────────────────────────────────────────────────────────────
+
+  prometheus:
+    image: prom/prometheus:latest
+    platform: linux/arm64
+    container_name: infrasage-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+    networks:
+      - infrasage-net
+    # host.docker.internal resolves to the Mac host IP from inside Docker Desktop.
+    # This is needed so Prometheus can scrape the CLI's :2112/metrics endpoint.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    platform: linux/arm64
+    container_name: infrasage-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=infrasage
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=localhost
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - infrasage-net
+
+# ── Named Volumes ──────────────────────────────────────────────────────────────
+volumes:
+  grafana-storage:
+    driver: local
+
+# ── Networks ───────────────────────────────────────────────────────────────────
+networks:
+  infrasage-net:
+    driver: bridge
