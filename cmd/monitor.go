@@ -19,7 +19,8 @@ var monitorCmd = &cobra.Command{
 
 Commands:
   open     Open Grafana dashboard in your default browser
-  metrics  Print raw Prometheus metrics to stdout`,
+	metrics  Print raw Prometheus metrics to stdout
+	serve    Keep a persistent /metrics endpoint running`,
 }
 
 var monitorOpenCmd = &cobra.Command{
@@ -34,9 +35,20 @@ var monitorMetricsCmd = &cobra.Command{
 	RunE:  runMonitorMetrics,
 }
 
+var monitorServeCmd = &cobra.Command{
+	Use:   "serve",
+	Short: "Run a persistent Prometheus metrics endpoint",
+	Long: `Runs a long-lived HTTP server exposing /metrics.
+
+Use this when Grafana shows no data because short-lived CLI commands exit
+before Prometheus can scrape metrics consistently.`,
+	RunE: runMonitorServe,
+}
+
 func init() {
 	monitorCmd.AddCommand(monitorOpenCmd)
 	monitorCmd.AddCommand(monitorMetricsCmd)
+	monitorCmd.AddCommand(monitorServeCmd)
 	rootCmd.AddCommand(monitorCmd)
 }
 
@@ -66,7 +78,7 @@ func runMonitorOpen(_ *cobra.Command, _ []string) error {
 	fmt.Printf("   If Grafana shows no data, ensure:\n")
 	fmt.Printf("   1. 'infrasage stack up' has been run\n")
 	fmt.Printf("   2. The binary has been run at least once (to emit metrics)\n")
-	fmt.Printf("   3. Prometheus targets: http://localhost:9090/targets\n")
+	fmt.Printf("   3. Prometheus targets: http://localhost:9091/targets\n")
 	return nil
 }
 
@@ -97,4 +109,11 @@ func runMonitorMetrics(_ *cobra.Command, _ []string) error {
 
 	os.Stdout.Write(body)
 	return nil
+}
+
+func runMonitorServe(_ *cobra.Command, _ []string) error {
+	metricsPort := getEnvOrDefault("INFRASAGE_METRICS_PORT", "2112")
+	fmt.Printf("📡 Keeping persistent metrics endpoint alive on :%s/metrics\n", metricsPort)
+	fmt.Println("   Keep this command running while Prometheus/Grafana are scraping.")
+	select {}
 }

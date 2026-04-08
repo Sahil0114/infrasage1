@@ -42,11 +42,14 @@ func runScan(cmd *cobra.Command, args []string) error {
 
 	report.Print()
 
-	// Record metrics for each finding.
+	monitor.RecordScan(report)
+
+	// Persist Checkov JSON for downstream use by `infrasage fix`.
 	for _, res := range report.Results {
-		if res.Error == nil {
-			for _, f := range res.Findings {
-				monitor.RecordScanFinding(res.Tool, f.Severity)
+		if res.Tool == "checkov" && res.RawJSON != nil {
+			jsonFile := tfFile + ".checkov.json"
+			if err := os.WriteFile(jsonFile, res.RawJSON, 0644); err == nil {
+				fmt.Printf("ℹ️  Checkov JSON output saved to %s\n", jsonFile)
 			}
 		}
 	}

@@ -11,7 +11,7 @@ CI/CD in InfraSage handles two things:
 **1. Validation on every push (infrasage-ci.yml):**
 When a `.tf` file is pushed or a PR is opened, GitHub Actions automatically:
 - Runs the three security scanners (same tools as local CLI)
-- Runs Terraform plan via Digger
+- Runs Terraform plan simulation (no AWS required)
 - Comments the plan result on the PR
 
 **2. Drift detection every 6 hours (drift-check.yml):**
@@ -24,26 +24,16 @@ The Go CLI's `deploy` command triggers this whole pipeline by pushing a branch a
 
 ---
 
-## What Digger Is And Why We Use It
+## Why We Use Simulation Mode
 
-Digger is a GitOps tool for Terraform. Without it:
-- You'd need to run `terraform apply` manually after every PR merge
-- AWS credentials would need to be in every developer's terminal
-- No audit trail of who applied what
+This repository supports a full no-AWS workflow for demos and development.
 
-With Digger:
-- Terraform plan runs automatically in GitHub Actions
-- Digger posts the plan output as a PR comment
-- On PR merge, Digger runs `terraform apply` automatically
-- All apply history is in the GitHub PR timeline
+With simulation mode:
+- Security scans run on every PR and push to main
+- Terraform dry-run output is posted to PR comments
+- No cloud account is required to validate generated HCL in CI
 
-**How to set up Digger (human does this once):**
-1. Go to https://digger.dev
-2. Sign up with GitHub
-3. Install the Digger GitHub App on your repository
-4. Add `DIGGER_TOKEN` to GitHub repository secrets
-
-Without the Digger token, the Digger action in CI will fail. This is acceptable for Phase 1 demo — the scan jobs will still work.
+If AWS secrets are added later, you can enable real cloud apply and drift remediation flows.
 
 ---
 
@@ -100,16 +90,12 @@ jobs:
 
 **Note:** `continue-on-error: false` means the job fails if any scanner finds issues. This is intentional — it enforces security as a gate.
 
-### Job 2: plan (runs only after scan passes)
+### Job 2: terraform-dryrun (runs only after scan passes)
 
 ```yaml
-  plan:
+  terraform-dryrun:
     runs-on: ubuntu-latest
     needs: [scan]             # Only runs if scan job passes
-    permissions:
-      contents: write         # Digger needs to write PR comments
-      pull-requests: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
       
@@ -117,16 +103,14 @@ jobs:
         with:
           terraform_version: "1.6.0"
       
-      - name: Digger Plan
-        uses: diggerhq/digger@v0.3.0
-        with:
-          setup-aws: true
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DIGGER_TOKEN: ${{ secrets.DIGGER_TOKEN }}
+      - name: Terraform Init (backend disabled)
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan (simulation mode)
+        run: terraform plan -no-color -input=false -refresh=false -lock=false -out=tfplan
 ```
 
 ---
@@ -213,7 +197,7 @@ run: |
    - Body includes: the scan summary (how many checks passed/failed)
    - Base branch: `main`
 
-6. **Prints the PR URL** and tells user what to expect from Digger
+6. **Prints the PR URL** and tells user to review simulation results in CI
 
 **GitHub API call for creating a PR:**
 ```
@@ -239,34 +223,22 @@ The human must add these in GitHub → Repository → Settings → Secrets and v
 
 | Secret Name | Value | Used By |
 |---|---|---|
-| `AWS_ACCESS_KEY_ID` | AWS IAM user key | Digger plan/apply, drift check |
-| `AWS_SECRET_ACCESS_KEY` | AWS IAM user secret | Digger plan/apply, drift check |
-| `DIGGER_TOKEN` | From digger.dev account | Digger action |
+| `AWS_ACCESS_KEY_ID` | AWS IAM user key | Optional real apply/drift check |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM user secret | Optional real apply/drift check |
 
 The `GITHUB_TOKEN` secret is auto-provided by GitHub Actions — no setup needed.
 
 ---
 
-## Digger Config File
+## Optional Real Cloud Apply
 
-**What to create:** `digger.yml` in the repository root.
+If you later add AWS secrets, you can run real infrastructure apply manually from the CLI:
 
-```yaml
-projects:
-  - name: infrasage-demo
-    dir: .
-    workspace: default
-    workflow: default
-    apply_after_merge: true
-    generate_projects:
-      files_changed:
-        patterns:
-          - "**/*.tf"
+```bash
+infrasage apply <file>
 ```
 
-**`apply_after_merge: true`** means Digger will run `terraform apply` automatically when the PR is merged. This is the GitOps automation.
-
-Without this, Digger only runs `plan`. The human would need to manually approve the apply in the Digger dashboard.
+This repository intentionally defaults to simulation mode for safe demos and no-cloud setups.
 
 ---
 
