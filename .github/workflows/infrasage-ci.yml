@@ -83,16 +83,11 @@ jobs:
               body
             });
 
-  terraform-plan:
-    name: Terraform Plan (Digger)
+  terraform-dryrun:
+    name: Terraform Dry Run (No AWS Required)
     runs-on: ubuntu-latest
     needs: security-scan
     if: github.event_name == 'pull_request'
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
     steps:
       - name: Checkout
@@ -103,18 +98,18 @@ jobs:
         with:
           terraform_version: "1.6.0"
 
-      - name: Terraform Init
-        run: terraform init -input=false
+      - name: Terraform Init (backend disabled)
+        run: terraform init -backend=false -input=false
         continue-on-error: true
 
       - name: Terraform Validate
         run: terraform validate
         continue-on-error: true
 
-      - name: Terraform Plan
+      - name: Terraform Plan (simulation mode)
         id: plan
         run: |
-          terraform plan -no-color -input=false -out=tfplan 2>&1 | tee plan_output.txt
+          terraform plan -no-color -input=false -refresh=false -lock=false -out=tfplan 2>&1 | tee plan_output.txt
           echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         continue-on-error: true
 
@@ -146,8 +141,8 @@ jobs:
 
             </details>
 
-            > ⚠️ **Note:** This plan runs in CI without real AWS credentials unless \`AWS_ACCESS_KEY_ID\` is set as a repository secret.
-            > Merge this PR to trigger \`terraform apply\` via Digger.`;
+            > ℹ️ **Simulation mode:** This CI plan is a non-destructive dry run intended for repos without cloud credentials.
+            > Real cloud apply is optional and only runs when AWS secrets are configured.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -155,30 +150,3 @@ jobs:
               repo: context.repo.repo,
               body
             });
-
-  digger:
-    name: Digger (Terraform Apply on Merge)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: []
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-
-      - name: Terraform Init
-        run: terraform init -input=false
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
-        continue-on-error: true

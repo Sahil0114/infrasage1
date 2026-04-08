@@ -152,10 +152,14 @@ func runAsk(cmd *cobra.Command, args []string) error {
 			fmt.Fprintf(os.Stderr, "   The HCL file was still written to %s.\n", askOutFile)
 		} else {
 			report.Print()
-			// Record per-finding metrics
+			monitor.RecordScan(report)
+			// Save Checkov JSON output for fix command
 			for _, res := range report.Results {
-				for _, f := range res.Findings {
-					monitor.RecordScanFinding(res.Tool, f.Severity)
+				if res.Tool == "checkov" && res.RawJSON != nil {
+					jsonFile := askOutFile + ".checkov.json"
+					if err := os.WriteFile(jsonFile, res.RawJSON, 0644); err == nil {
+						fmt.Printf("ℹ️  Checkov JSON output saved to %s\n", jsonFile)
+					}
 				}
 			}
 		}

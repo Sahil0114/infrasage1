@@ -60,7 +60,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -93,7 +93,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum(infrasage_iac_generations_total{status=\"success\"})",
           "legendFormat": "Success",
           "refId": "A"
@@ -103,7 +103,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -137,7 +137,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum(infrasage_iac_generations_total{status=\"error\"})",
           "legendFormat": "Error",
           "refId": "A"
@@ -147,7 +147,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -181,7 +181,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "histogram_quantile(0.50, rate(infrasage_model_latency_seconds_bucket[10m]))",
           "legendFormat": "p50 Latency",
           "refId": "A"
@@ -191,7 +191,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -225,7 +225,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "histogram_quantile(0.95, rate(infrasage_model_latency_seconds_bucket[10m]))",
           "legendFormat": "p95 Latency",
           "refId": "A"
@@ -235,7 +235,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -268,7 +268,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum(infrasage_drift_detected_total)",
           "legendFormat": "Drift Events",
           "refId": "A"
@@ -278,7 +278,7 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -320,7 +320,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "rate(infrasage_iac_generations_total[5m])",
           "legendFormat": "{{ status }}",
           "refId": "A"
@@ -330,7 +330,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -372,19 +372,19 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "histogram_quantile(0.50, rate(infrasage_model_latency_seconds_bucket[5m]))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "histogram_quantile(0.90, rate(infrasage_model_latency_seconds_bucket[5m]))",
           "legendFormat": "p90",
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "histogram_quantile(0.99, rate(infrasage_model_latency_seconds_bucket[5m]))",
           "legendFormat": "p99",
           "refId": "C"
@@ -401,7 +401,7 @@
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -439,7 +439,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum by (scanner) (infrasage_scan_findings)",
           "legendFormat": "{{ scanner }}",
           "refId": "A"
@@ -449,7 +449,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -502,7 +502,7 @@
       "pluginVersion": "9.0.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum by (severity) (infrasage_scan_findings)",
           "legendFormat": "{{ severity }}",
           "refId": "A"
@@ -512,7 +512,7 @@
       "type": "bargauge"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -554,7 +554,7 @@
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": "Prometheus",
           "expr": "sum by (scanner, severity) (infrasage_scan_findings)",
           "legendFormat": "{{ scanner }} / {{ severity }}",
           "refId": "A"

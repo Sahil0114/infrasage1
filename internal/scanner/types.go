@@ -24,6 +24,7 @@ type ScanResult struct {
 	Findings []Finding
 	Duration time.Duration
 	Error    error // nil if scan succeeded
+	RawJSON  []byte // Raw JSON output from the scanner (for Checkov)
 }
 
 // Report aggregates results from all scanner tools for a single file.

@@ -104,7 +104,9 @@ func RunCheckov(tfFile string) ScanResult {
 		}
 	}
 
-	return parseCheckovOutput(output, start)
+	result := parseCheckovOutput(output, start)
+	result.RawJSON = output
+	return result
 }
 
 // parseCheckovOutput parses Checkov's JSON output into a ScanResult.

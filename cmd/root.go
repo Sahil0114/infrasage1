@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/Sahil0114/infrasage1/internal/monitor"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,15 @@ var rootCmd = &cobra.Command{
 	Short:   "AI-powered DevSecOps CLI — generate, scan and deploy Terraform with a single command",
 	Version: "0.1.0",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		path := cmd.CommandPath()
+		if path != "infrasage monitor metrics" && path != "infrasage monitor open" {
+			metricsPort := os.Getenv("INFRASAGE_METRICS_PORT")
+			if metricsPort == "" {
+				metricsPort = "2112"
+			}
+			monitor.StartServer(metricsPort)
+		}
+
 		if debug {
 			slog.SetDefault(slog.New(
 				slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{

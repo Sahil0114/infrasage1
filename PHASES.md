@@ -592,7 +592,7 @@ if !askNoScan {
 
 ## Phase 3 — CI/CD Integration
 
-**Goal at end of Phase 3:** `infrasage deploy infra.tf` creates a GitHub PR, Digger comments the plan.
+**Goal at end of Phase 3:** `infrasage deploy infra.tf` creates a GitHub PR with security scan and Terraform dry-run feedback.
 
 ---
 
@@ -620,31 +620,18 @@ Job 2 `plan`:
 - Steps:
   1. `actions/checkout@v4`
   2. `hashicorp/setup-terraform@v3`
-  3. Digger action: `diggerhq/digger@v0.3.0`
-     - Needs secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `GITHUB_TOKEN`
+  3. `terraform init -backend=false`
+  4. `terraform validate`
+  5. `terraform plan -refresh=false -lock=false`
 
 **Important:** The workflow must not have `aws_access_key_id` or any secret hardcoded. Use `${{ secrets.AWS_ACCESS_KEY_ID }}` syntax only.
 
 ---
 
-### Step 3.2 — Digger Configuration File
+### Step 3.2 — Terraform Dry-Run in CI
 
-**What to create:** `digger.yml` in repo root
-
-```yaml
-projects:
-  - name: infrasage
-    dir: .
-    workflow: default
-    workspace: default
-    apply_after_merge: true
-    generate_projects:
-      files_changed:
-        patterns:
-          - "**/*.tf"
-```
-
-This tells Digger: run terraform plan on PR, run apply on merge.
+Keep CI cloud-agnostic by running terraform dry-run checks in PR workflows.
+Real apply remains optional and is run manually via `infrasage apply`.
 
 ---
 
@@ -697,7 +684,7 @@ This tells Digger: run terraform plan on PR, run apply on merge.
 2. Call git functions in order
 3. Call CreatePR
 4. Print the PR URL
-5. Print: "Digger will comment the terraform plan on your PR. Merge to apply."
+5. Print: "CI will comment security scan and terraform dry-run results on your PR."
 
 ---
 

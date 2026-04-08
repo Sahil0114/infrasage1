@@ -64,11 +64,8 @@ USER TYPES:   infrasage ask "create an S3 bucket"
 │    ├── Checkov Action  (re-scans in CI)                                │
 │    ├── tfsec Action                                                     │
 │    ├── Terrascan Action                                                 │
-│    └── Digger Action  ─────────────────────────────────────────┐       │
-│                                                                 │       │
-│  Digger comments terraform plan output on the PR               │       │
-│  On PR merge → Digger runs terraform apply                     │       │
-│                                                                 ▼       │
+│    └── Terraform dry-run simulation comments on the PR                  │
+│                                                                         │
 │  Drift check cron (.github/workflows/drift-check.yml)                  │
 │    Runs every 6 hours → if drift found → auto-creates new PR           │
 └─────────────────────────────────────────────────────────────────────────┘
