@@ -1,7 +1,7 @@
 terraform {
-  required_version = ">= 1.5.0"
+	required_version = ">= 1.5.0"
 }
 
 resource "terraform_data" "demo" {
-  input = "infrasage-demo"
+	input = "infrasage-demo"
 }
