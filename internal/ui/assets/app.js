@@ -1,12 +1,13 @@
 const terminalElement = document.getElementById("terminal");
 const term = new Terminal({
-  theme: { background: "#0a0a0a", foreground: "#ffffff" },
+  theme: { background: "#0a0a0a", foreground: "#d4d4d4" },
   fontFamily: "SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   fontSize: 12,
   cursorBlink: true,
+  scrollback: 2000,
 });
 term.open(terminalElement);
-term.writeln("InfraSage UI ready.");
+term.writeln("\x1b[90mInfraSage UI ready.\x1b[0m");
 
 const promptInput = document.getElementById("promptInput");
 const promptSend = document.getElementById("promptSend");
@@ -19,16 +20,23 @@ const modeStatus = document.getElementById("modeStatus");
 let currentMode = "github";
 let awsAvailable = false;
 
-function setMode(mode) {
-  currentMode = mode;
-  modeButtons.forEach((btn) => {
-    const isActive = btn.dataset.mode === mode;
-    btn.classList.toggle("active", isActive);
-    if (btn.dataset.mode === "aws") {
-      btn.disabled = !awsAvailable;
-    }
+// ── Busy state ──────────────────────────────────────────────────────────────
+function setBusy(busy) {
+  promptSend.disabled = busy;
+  driftCheck.disabled = busy;
+  promptSend.textContent = busy ? "Running…" : "Run";
+  promptSend.classList.toggle("busy", busy);
+  if (busy) {
+    resetPipeline();
+    resetScans();
+  }
+}
+
+// ── Pipeline ─────────────────────────────────────────────────────────────────
+function resetPipeline() {
+  document.querySelectorAll(".pipeline-node").forEach((node) => {
+    node.classList.remove("active");
   });
-  modeStatus.textContent = mode === "aws" ? "Real deployment" : "Dry-run";
 }
 
 function updatePipeline(step) {
@@ -39,11 +47,25 @@ function updatePipeline(step) {
   });
 }
 
+// ── Scan dashboard ───────────────────────────────────────────────────────────
+function resetScans() {
+  document.querySelectorAll(".scan-column").forEach((col) => {
+    const statusEl = col.querySelector("[data-scan-status]");
+    statusEl.textContent = "Idle";
+    statusEl.removeAttribute("data-status");
+    col.querySelector("[data-scan-counts]").textContent = "0 passed / 0 failed";
+    col.querySelector("[data-scan-findings]").innerHTML = "";
+  });
+}
+
 function updateScan(payload) {
   const column = document.querySelector(`[data-scan="${payload.tool}"]`);
   if (!column) return;
 
-  column.querySelector("[data-scan-status]").textContent = payload.status;
+  const statusEl = column.querySelector("[data-scan-status]");
+  statusEl.textContent = payload.status;
+  statusEl.setAttribute("data-status", payload.status);
+
   column.querySelector(
     "[data-scan-counts]"
   ).textContent = `${payload.passed} passed / ${payload.failed} failed`;
@@ -62,11 +84,40 @@ function updateScan(payload) {
   });
 }
 
+// ── Drift ────────────────────────────────────────────────────────────────────
 function updateDrift(payload) {
   driftOutput.textContent = payload.output || "";
   remediateBtn.hidden = payload.status !== "drift";
 }
 
+// ── Mode ─────────────────────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  modeButtons.forEach((btn) => {
+    const isActive = btn.dataset.mode === mode;
+    btn.classList.toggle("active", isActive);
+    if (btn.dataset.mode === "aws") {
+      btn.disabled = !awsAvailable;
+    }
+  });
+  modeStatus.textContent = mode === "aws" ? "Real deployment" : "Dry-run";
+}
+
+// ── Toast notification ───────────────────────────────────────────────────────
+function showToast(msg) {
+  const existing = document.querySelector(".toast");
+  if (existing) existing.remove();
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.classList.add("toast-fade");
+    setTimeout(() => t.remove(), 300);
+  }, 2200);
+}
+
+// ── Config / Init ─────────────────────────────────────────────────────────────
 async function fetchConfig() {
   const res = await fetch("/api/config");
   const cfg = await res.json();
@@ -89,6 +140,7 @@ async function postJSON(url, body) {
   return res.json();
 }
 
+// ── Button handlers ──────────────────────────────────────────────────────────
 promptSend.addEventListener("click", async () => {
   const prompt = promptInput.value.trim();
   if (!prompt) return;
@@ -127,12 +179,15 @@ modeButtons.forEach((btn) => {
     try {
       const response = await postJSON("/api/mode", { mode: btn.dataset.mode });
       setMode(response.mode);
+      const label = response.mode === "aws" ? "AWS — Real deployment" : "GitHub Actions — Dry-run";
+      showToast(`Mode switched to ${label}`);
     } catch (err) {
       term.writeln(`\x1b[31m${err.message}\x1b[0m`);
     }
   });
 });
 
+// ── WebSocket ────────────────────────────────────────────────────────────────
 function connectWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${protocol}://${window.location.host}/ws/stream`);
@@ -159,11 +214,16 @@ function connectWebSocket() {
       if (message.type === "drift") {
         updateDrift(message.payload);
       }
+      if (message.type === "busy") {
+        setBusy(message.payload.busy);
+      }
       if (message.type === "deploy") {
-        term.writeln(`PR opened: ${message.payload.url}`);
+        term.writeln(
+          `\x1b[32m✅ PR opened →\x1b[0m \x1b[36m\x1b[4m${message.payload.url}\x1b[0m`
+        );
       }
     } catch (err) {
-      console.error("WS error", err);
+      console.error("WS parse error", err);
     }
   };
 

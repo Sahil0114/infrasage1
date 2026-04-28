@@ -406,6 +406,13 @@ func (s *Server) runRemediate(file string) {
 	}
 	s.terminal("✅ Pull request opened: " + prURL)
 	s.broadcast(Event{Type: "deploy", Payload: DeployPayload{URL: prURL}})
+
+	// Stream GitHub Actions CI status back to the terminal in the background.
+	go func() {
+		gitops.PollWorkflowRuns(branch, 3*time.Minute, 6*time.Second, func(msg string) {
+			s.terminal(msg)
+		})
+	}()
 }
 
 func (s *Server) sendScanResult(res scanner.ScanResult) {
@@ -462,11 +469,13 @@ func (s *Server) terminalError(line string) {
 
 func (s *Server) startJob() bool {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	if s.busy {
+		s.mu.Unlock()
 		return false
 	}
 	s.busy = true
+	s.mu.Unlock()
+	s.broadcast(Event{Type: "busy", Payload: BusyPayload{Busy: true}})
 	return true
 }
 
@@ -474,6 +483,7 @@ func (s *Server) finishJob() {
 	s.mu.Lock()
 	s.busy = false
 	s.mu.Unlock()
+	s.broadcast(Event{Type: "busy", Payload: BusyPayload{Busy: false}})
 }
 
 func (s *Server) broadcast(event Event) {

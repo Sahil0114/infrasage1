@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -108,4 +109,94 @@ func CreatePR(branch, title, body string) (string, error) {
 
 	slog.Debug("GitHub PR created", "url", pr.HTMLURL, "number", pr.Number)
 	return pr.HTMLURL, nil
+}
+
+// PollWorkflowRuns polls GitHub Actions workflow runs for the given head branch,
+// streaming human-readable status messages to statusFn.
+// It polls every pollInterval for up to maxWait then sends a timeout message.
+func PollWorkflowRuns(branch string, maxWait, pollInterval time.Duration, statusFn func(string)) {
+	token := os.Getenv("GITHUB_TOKEN")
+	repo := os.Getenv("GITHUB_REPO")
+	if token == "" || repo == "" {
+		statusFn("⚠️  CI polling skipped — GITHUB_TOKEN/GITHUB_REPO not configured")
+		return
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	deadline := time.Now().Add(maxWait)
+	var lastRunID int
+	var lastRunStatus string
+	started := false
+
+	for time.Now().Before(deadline) {
+		time.Sleep(pollInterval)
+
+		apiURL := fmt.Sprintf("%s/repos/%s/actions/runs?branch=%s&per_page=5", githubAPIBase, repo, url.QueryEscape(branch))
+		req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+		if err != nil {
+			continue
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Accept", "application/vnd.github+json")
+		req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			continue
+		}
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+
+		var result struct {
+			WorkflowRuns []struct {
+				ID         int    `json:"id"`
+				Status     string `json:"status"`
+				Conclusion string `json:"conclusion"`
+				HTMLURL    string `json:"html_url"`
+				Name       string `json:"name"`
+			} `json:"workflow_runs"`
+		}
+		if err := json.Unmarshal(body, &result); err != nil {
+			slog.Debug("PollWorkflowRuns: failed to parse response", "err", err)
+			continue
+		}
+		if len(result.WorkflowRuns) == 0 {
+			if !started {
+				statusFn("⏳ Waiting for GitHub Actions CI to start...")
+				started = true
+			}
+			continue
+		}
+		started = true
+
+		run := result.WorkflowRuns[0]
+
+		// Skip if this run + status combination was already reported.
+		if run.ID == lastRunID && run.Status == lastRunStatus {
+			continue
+		}
+		lastRunID = run.ID
+		lastRunStatus = run.Status
+
+		switch run.Status {
+		case "queued":
+			statusFn(fmt.Sprintf("⏳ CI queued — %s", run.HTMLURL))
+		case "in_progress":
+			statusFn(fmt.Sprintf("🔄 CI running (%s) — %s", run.Name, run.HTMLURL))
+		case "completed":
+			switch run.Conclusion {
+			case "success":
+				statusFn(fmt.Sprintf("✅ CI passed (%s) — %s", run.Name, run.HTMLURL))
+			case "failure":
+				statusFn(fmt.Sprintf("❌ CI failed (%s) — check Actions tab: %s", run.Name, run.HTMLURL))
+			case "cancelled":
+				statusFn(fmt.Sprintf("⏹️  CI cancelled (%s) — %s", run.Name, run.HTMLURL))
+			default:
+				statusFn(fmt.Sprintf("CI %s (%s) — %s", run.Conclusion, run.Name, run.HTMLURL))
+			}
+			return
+		}
+	}
+
+	statusFn("⏱️  CI polling timed out — check GitHub Actions manually")
 }

@@ -148,7 +148,6 @@ body {
 
 .pipeline-node.active {
   border-color: #ffffff;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.35);
 }
 
 .grid {
@@ -224,6 +223,21 @@ body {
   opacity: 0.4;
 }
 
+/* Scan status colour coding */
+[data-scan-status][data-status="PASS"] {
+  color: rgba(74, 222, 128, 0.9);
+}
+[data-scan-status][data-status="WARN"] {
+  color: rgba(251, 191, 36, 0.9);
+}
+[data-scan-status][data-status="FAIL"] {
+  color: rgba(248, 113, 113, 0.95);
+  font-weight: 700;
+}
+[data-scan-status][data-status="ERROR"] {
+  color: rgba(248, 113, 113, 0.7);
+}
+
 .monitor-panel iframe {
   width: 100%;
   height: 320px;
@@ -281,3 +295,61 @@ body {
     flex-wrap: wrap;
   }
 }
+
+/* Busy state for Run button */
+.prompt-panel button.busy {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0a0a0a;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  animation: toastIn 0.2s ease;
+  pointer-events: none;
+}
+
+.toast-fade {
+  animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastOut {
+  to {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+}
+
+/* Pipeline node pulse animation while active */
+@keyframes pipelinePulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.35); }
+  50%       { box-shadow: 0 0 28px rgba(255, 255, 255, 0.6); }
+}
+
+.pipeline-node.active {
+  border-color: #ffffff;
+  animation: pipelinePulse 1.6s ease-in-out infinite;
+}
+

@@ -59,6 +59,10 @@ type DeployPayload struct {
 	URL string `json:"url"`
 }
 
+type BusyPayload struct {
+	Busy bool `json:"busy"`
+}
+
 type wsClient struct {
 	conn   net.Conn
 	send   chan []byte
