@@ -41,7 +41,7 @@ func init() {
 }
 
 func runMonitorOpen(_ *cobra.Command, _ []string) error {
-	grafanaURL := getEnvOrDefault("INFRASAGE_GRAFANA_URL", "http://localhost:3000")
+	grafanaURL := getEnvOrDefault("INFRASAGE_GRAFANA_URL", "http://localhost:3001")
 
 	fmt.Printf("🌐 Opening Grafana at %s\n", grafanaURL)
 	fmt.Printf("   Default credentials: admin / infrasage\n\n")

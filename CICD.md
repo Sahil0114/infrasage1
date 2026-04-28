@@ -34,7 +34,7 @@ Digger is a GitOps tool for Terraform. Without it:
 With Digger:
 - Terraform plan runs automatically in GitHub Actions
 - Digger posts the plan output as a PR comment
-- On PR merge, Digger runs `terraform apply` automatically
+- On PR merge, Digger runs `terraform apply` automatically **when AWS secrets are configured**
 - All apply history is in the GitHub PR timeline
 
 **How to set up Digger (human does this once):**
@@ -245,6 +245,12 @@ The human must add these in GitHub → Repository → Settings → Secrets and v
 
 The `GITHUB_TOKEN` secret is auto-provided by GitHub Actions — no setup needed.
 
+InfraSage can sync AWS secrets for you:
+```
+infrasage config --aws
+```
+This uses the GitHub CLI (`gh`) to upload your local AWS credentials to repository secrets.
+
 ---
 
 ## Digger Config File
@@ -264,7 +270,7 @@ projects:
           - "**/*.tf"
 ```
 
-**`apply_after_merge: true`** means Digger will run `terraform apply` automatically when the PR is merged. This is the GitOps automation.
+**`apply_after_merge: true`** means Digger will run `terraform apply` automatically when the PR is merged (and AWS secrets are present). This is the GitOps automation.
 
 Without this, Digger only runs `plan`. The human would need to manually approve the apply in the Digger dashboard.
 

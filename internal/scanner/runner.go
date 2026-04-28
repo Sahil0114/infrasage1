@@ -12,6 +12,12 @@ import (
 // Individual scanner failures are captured in ScanResult.Error — RunAll itself only
 // returns an error for path resolution failures.
 func RunAll(tfFile string) (*Report, error) {
+	return RunAllWithCallback(tfFile, nil)
+}
+
+// RunAllWithCallback runs all scanners and invokes onResult as each completes.
+// onResult may be nil.
+func RunAllWithCallback(tfFile string, onResult func(ScanResult)) (*Report, error) {
 	absPath, err := filepath.Abs(tfFile)
 	if err != nil {
 		return nil, fmt.Errorf("scanner RunAll: resolving absolute path for %q: %w", tfFile, err)
@@ -34,6 +40,9 @@ func RunAll(tfFile string) (*Report, error) {
 	for i := 0; i < 3; i++ {
 		res := <-results
 		report.Results = append(report.Results, res)
+		if onResult != nil {
+			onResult(res)
+		}
 		if res.Error != nil {
 			slog.Debug("scanner result with error", "tool", res.Tool, "err", res.Error)
 		} else {

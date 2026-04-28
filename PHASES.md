@@ -198,7 +198,7 @@ cat infra.tf | head -5
    ```
    ✅ InfraSage stack is up!
       Prometheus: http://localhost:9090
-      Grafana:    http://localhost:3000  (admin / infrasage)
+   Grafana:    http://localhost:3001  (admin / infrasage)
       Ollama:     http://localhost:11434
    ```
 
@@ -259,7 +259,7 @@ Full test happens in Step 1.10.
 - Image: `grafana/grafana:latest`
 - Container name: `infrasage-grafana`
 - Platform: `linux/arm64`
-- Ports: `3000:3000`
+- Ports: `3001:3000`
 - Environment:
   - `GF_SECURITY_ADMIN_PASSWORD=infrasage`
   - `GF_AUTH_ANONYMOUS_ENABLED=true`

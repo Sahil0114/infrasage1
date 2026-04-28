@@ -62,7 +62,7 @@ clean:
 stack-up:
 	@echo "🐳 Starting InfraSage Docker stack..."
 	docker compose -f $(COMPOSE_FILE) up -d
-	@echo "✅ Stack up — Grafana: http://localhost:3000  Prometheus: http://localhost:9090"
+	@echo "✅ Stack up — Grafana: http://localhost:3001  Prometheus: http://localhost:9090"
 
 stack-down:
 	@echo "🛑 Stopping InfraSage Docker stack..."

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InfraSage UI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <div class="brand">
+          <span class="brand-dot"></span>
+          InfraSage
+        </div>
+        <div class="mode-toggle">
+          <span class="mode-label">Deployment:</span>
+          <button class="mode-btn" data-mode="github">GitHub Actions</button>
+          <button class="mode-btn" data-mode="aws">AWS</button>
+          <span class="mode-status" id="modeStatus">Dry-run</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="prompt-panel">
+          <input
+            id="promptInput"
+            type="text"
+            placeholder='Create a secure S3 bucket with versioning'
+            autocomplete="off"
+          />
+          <button id="promptSend">Run</button>
+        </div>
+        <div class="terminal-panel">
+          <div id="terminal" class="terminal"></div>
+        </div>
+      </section>
+
+      <section class="pipeline" id="pipeline">
+        <div class="pipeline-node" data-step="NL Input">NL Input</div>
+        <div class="pipeline-node" data-step="AI/NLP">AI / NLP</div>
+        <div class="pipeline-node" data-step="IaC Generator">IaC Generator</div>
+        <div class="pipeline-node" data-step="Git Repo">Git Repo</div>
+        <div class="pipeline-node" data-step="CI/CD">CI/CD</div>
+        <div class="pipeline-node" data-step="Cloud">Cloud</div>
+        <div class="pipeline-node" data-step="Monitoring">Monitoring</div>
+        <div class="pipeline-node" data-step="Drift">Drift</div>
+        <div class="pipeline-node" data-step="Remediation">Remediation</div>
+        <div class="pipeline-node" data-step="Alerts">Alerts</div>
+      </section>
+
+      <section class="grid">
+        <div class="card scan-dashboard">
+          <div class="card-title">Security Scan Dashboard</div>
+          <div class="scan-columns">
+            <div class="scan-column" data-scan="checkov">
+              <h4>Checkov</h4>
+              <p class="scan-status" data-scan-status>Idle</p>
+              <p class="scan-counts" data-scan-counts>0 passed / 0 failed</p>
+              <ul class="scan-findings" data-scan-findings></ul>
+            </div>
+            <div class="scan-column" data-scan="tfsec">
+              <h4>tfsec</h4>
+              <p class="scan-status" data-scan-status>Idle</p>
+              <p class="scan-counts" data-scan-counts>0 passed / 0 failed</p>
+              <ul class="scan-findings" data-scan-findings></ul>
+            </div>
+            <div class="scan-column" data-scan="terrascan">
+              <h4>Terrascan</h4>
+              <p class="scan-status" data-scan-status>Idle</p>
+              <p class="scan-counts" data-scan-counts>0 passed / 0 failed</p>
+              <ul class="scan-findings" data-scan-findings></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card monitor-panel">
+          <div class="card-title">Infrastructure Monitor</div>
+          <iframe id="grafanaFrame" title="Grafana"></iframe>
+        </div>
+
+        <div class="card drift-panel">
+          <div class="card-title">Drift Detection</div>
+          <div class="drift-actions">
+            <button id="driftCheck">Run Drift Check</button>
+            <button id="remediateBtn" class="secondary" hidden>Remediate</button>
+          </div>
+          <pre id="driftOutput" class="drift-output">Awaiting drift check...</pre>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
