@@ -9,6 +9,7 @@
 
 ```
 USER TYPES:   infrasage ask "create an S3 bucket"
+              infrasage ui
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -21,6 +22,7 @@ USER TYPES:   infrasage ask "create an S3 bucket"
 │  └─ scanner/    ← docker exec into scanner containers                  │
 │  └─ gitops/     ← git + GitHub API for deploy command                  │
 │  └─ monitor/    ← Prometheus metric registration and push              │
+│  └─ ui/         ← Web UI server (dashboard + websocket terminal)       │
 └────────┬──────────────────────────────────────────────────────────────-┘
          │
          │ HTTP POST /api/generate
@@ -47,7 +49,7 @@ USER TYPES:   infrasage ask "create an S3 bucket"
 │                                                                         │
 │  ┌──────────────────────┐   ┌──────────────────────────────────────┐  │
 │  │     Prometheus       │   │              Grafana                  │  │
-│  │     Port: 9090       │◄──│           Port: 3000                  │  │
+│  │     Port: 9090       │◄──│           Port: 3001                  │  │
 │  │  scrapes :2112/metrics│  │   Dashboard: infrasage.json           │  │
 │  └──────────────────────┘   └──────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -115,8 +117,12 @@ infrasage/
 │   │                         Also checks/starts ollama serve
 │   │
 │   ├── monitor.go         ← infrasage monitor open|metrics
-│   │                         open: exec open http://localhost:3000
+│   │                         open: exec open http://localhost:3001
 │   │                         metrics: curl localhost:2112/metrics
+│   │
+│   ├── ui.go              ← infrasage ui (launches browser dashboard)
+│   │
+│   ├── config.go          ← infrasage config --aws (sync secrets)
 │   │
 │   └── model.go           ← infrasage model pull|status
 │                              pull: ollama pull <model from env>
@@ -172,6 +178,7 @@ infrasage/
 │   │                         Returns the PR URL.
 │   │
 │   └── monitor/
+│   └── ui/
 │       └── metrics.go     ← Registers all Prometheus metrics at package init.
 │                             StartServer(port string) — runs :2112/metrics in background goroutine.
 │                             RecordGeneration(status string)
@@ -362,7 +369,8 @@ Host machine (macOS)
 │
 ├── :9090   ← Prometheus (in Docker, published to host)
 │
-└── :3000   ← Grafana (in Docker, published to host)
+├── :3000   ← InfraSage UI (infrasage ui)
+└── :3001   ← Grafana (in Docker, published to host)
 
 Docker internal network: infrasage-net
   All containers can reach each other by service name.

@@ -84,8 +84,9 @@ func getEnvOrDefault(key, defaultVal string) string {
 | `INFRASAGE_OLLAMA_TIMEOUT` | `120s` | `internal/llm/client.go` |
 | `INFRASAGE_SCAN_DIR` | `/tmp/infrasage-scans` | `internal/scanner/docker.go` |
 | `INFRASAGE_COMPOSE_FILE` | `./deploy/docker-compose.yml` | `cmd/stack.go` |
+| `INFRASAGE_UI_PORT` | `3000` | `cmd/ui.go` |
 | `INFRASAGE_METRICS_PORT` | `2112` | `internal/monitor/metrics.go` |
-| `INFRASAGE_GRAFANA_URL` | `http://localhost:3000` | `cmd/monitor.go` |
+| `INFRASAGE_GRAFANA_URL` | `http://localhost:3001` | `cmd/monitor.go` |
 | `GITHUB_TOKEN` | *(required for deploy)* | `internal/gitops/github.go` |
 | `GITHUB_REPO` | *(required for deploy)* | `internal/gitops/github.go` |
 | `GITHUB_DEFAULT_BRANCH` | `main` | `internal/gitops/github.go` |

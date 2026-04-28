@@ -74,7 +74,7 @@ services:
     platform: linux/arm64
     container_name: infrasage-grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=infrasage
       - GF_AUTH_ANONYMOUS_ENABLED=true

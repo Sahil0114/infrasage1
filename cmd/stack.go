@@ -116,7 +116,7 @@ func runStackUp(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 	fmt.Println("✅ InfraSage stack is up!")
 	fmt.Println("   Prometheus: http://localhost:9091")
-	fmt.Println("   Grafana:    http://localhost:3000  (admin / infrasage)")
+	fmt.Println("   Grafana:    http://localhost:3001  (admin / infrasage)")
 	fmt.Println("   Ollama:     http://localhost:11434")
 	fmt.Println()
 	fmt.Println("   Run 'infrasage ask \"create an S3 bucket\"' to generate Terraform HCL.")

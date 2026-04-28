@@ -146,8 +146,8 @@ jobs:
 
             </details>
 
-            > ⚠️ **Note:** This plan runs in CI without real AWS credentials unless \`AWS_ACCESS_KEY_ID\` is set as a repository secret.
-            > Merge this PR to trigger \`terraform apply\` via Digger.`;
+            > ⚠️ **Note:** This plan runs in dry-run mode unless AWS secrets are configured.
+            > Merge this PR to trigger \`terraform apply\` when AWS mode is enabled.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -159,7 +159,7 @@ jobs:
   digger:
     name: Digger (Terraform Apply on Merge)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
     needs: []
 
     env:

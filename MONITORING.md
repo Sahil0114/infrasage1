@@ -46,7 +46,7 @@ Grafana container (in Docker)
   - Shows panels for each metric
        │
        ▼
-Human opens http://localhost:3000
+Human opens http://localhost:3001
 ```
 
 ---
@@ -250,7 +250,7 @@ The easiest approach: build the dashboard manually in Grafana UI first, then exp
 **Steps to build and export:**
 1. `infrasage stack up`
 2. Run a few `infrasage ask` commands (to generate metric data)
-3. Open http://localhost:3000 (admin / infrasage)
+3. Open http://localhost:3001 (admin / infrasage)
 4. Create New Dashboard
 5. Add each panel (specifications below)
 6. When done: Dashboard settings → JSON Model → Copy all
