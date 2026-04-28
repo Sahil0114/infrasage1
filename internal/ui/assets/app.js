@@ -24,6 +24,8 @@ let awsAvailable = false;
 function setBusy(busy) {
   promptSend.disabled = busy;
   driftCheck.disabled = busy;
+  scanBtn.disabled = busy;
+  deployBtn.disabled = busy;
   promptSend.textContent = busy ? "Running…" : "Run";
   promptSend.classList.toggle("busy", busy);
   if (busy) {
@@ -141,6 +143,11 @@ async function postJSON(url, body) {
 }
 
 // ── Button handlers ──────────────────────────────────────────────────────────
+const scanBtn = document.getElementById("scanBtn");
+const scanFileInput = document.getElementById("scanFileInput");
+const deployBtn = document.getElementById("deployBtn");
+const deployFileInput = document.getElementById("deployFileInput");
+
 promptSend.addEventListener("click", async () => {
   const prompt = promptInput.value.trim();
   if (!prompt) return;
@@ -187,7 +194,49 @@ modeButtons.forEach((btn) => {
   });
 });
 
-// ── WebSocket ────────────────────────────────────────────────────────────────
+scanBtn.addEventListener("click", async () => {
+  const file = scanFileInput.value.trim();
+  try {
+    await postJSON("/api/scan", { file });
+  } catch (err) {
+    term.writeln(`\x1b[31m${err.message}\x1b[0m`);
+  }
+});
+
+deployBtn.addEventListener("click", async () => {
+  const file = deployFileInput.value.trim();
+  try {
+    await postJSON("/api/deploy", { file });
+  } catch (err) {
+    term.writeln(`\x1b[31m${err.message}\x1b[0m`);
+  }
+});
+
+// ── Live metrics panel ───────────────────────────────────────────────────────
+function updateMetrics(data) {
+  const fmt = (v) => (typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(2)) : "—");
+  const el = (id) => document.getElementById(id);
+  el("metricGenerations").textContent = fmt(data.generationsTotal);
+  el("metricFindings").textContent = fmt(data.scanFindings);
+  el("metricDrift").textContent = fmt(data.driftTotal);
+  el("metricLatency").textContent = data.modelLatencyP50
+    ? fmt(data.modelLatencyP50)
+    : "—";
+}
+
+async function pollMetrics() {
+  try {
+    const res = await fetch("/api/metrics");
+    if (res.ok) {
+      const data = await res.json();
+      updateMetrics(data);
+    }
+  } catch (_) {
+    // metrics server not running — keep showing dashes
+  }
+}
+
+// WebSocket ────────────────────────────────────────────────────────────────
 function connectWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${protocol}://${window.location.host}/ws/stream`);
@@ -234,3 +283,5 @@ function connectWebSocket() {
 
 fetchConfig();
 connectWebSocket();
+pollMetrics();
+setInterval(pollMetrics, 30_000);

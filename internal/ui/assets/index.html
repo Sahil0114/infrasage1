@@ -38,6 +38,28 @@
           />
           <button id="promptSend">Run</button>
         </div>
+        <div class="action-bar">
+          <div class="action-group">
+            <input
+              id="scanFileInput"
+              type="text"
+              class="file-input"
+              placeholder="infra.tf"
+              autocomplete="off"
+            />
+            <button id="scanBtn" class="action-btn">Scan</button>
+          </div>
+          <div class="action-group">
+            <input
+              id="deployFileInput"
+              type="text"
+              class="file-input"
+              placeholder="infra.tf"
+              autocomplete="off"
+            />
+            <button id="deployBtn" class="action-btn">Deploy</button>
+          </div>
+        </div>
         <div class="terminal-panel">
           <div id="terminal" class="terminal"></div>
         </div>
@@ -83,6 +105,24 @@
 
         <div class="card monitor-panel">
           <div class="card-title">Infrastructure Monitor</div>
+          <div class="metrics-row" id="metricsRow">
+            <div class="metric-cell">
+              <span class="metric-value" id="metricGenerations">—</span>
+              <span class="metric-label">Generations</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-value" id="metricFindings">—</span>
+              <span class="metric-label">Findings</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-value" id="metricDrift">—</span>
+              <span class="metric-label">Drift Events</span>
+            </div>
+            <div class="metric-cell">
+              <span class="metric-value" id="metricLatency">—</span>
+              <span class="metric-label">Latency p50 (s)</span>
+            </div>
+          </div>
           <iframe id="grafanaFrame" title="Grafana"></iframe>
         </div>
 

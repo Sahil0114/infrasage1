@@ -124,6 +124,65 @@ body {
   height: 320px;
 }
 
+/* Action bar — Scan / Deploy controls */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  align-items: center;
+}
+
+.file-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+
+.file-input:focus {
+  outline: none;
+}
+
+.file-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.action-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-btn:hover {
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .terminal {
   height: 100%;
 }
@@ -240,10 +299,50 @@ body {
 
 .monitor-panel iframe {
   width: 100%;
-  height: 320px;
+  height: 260px;
   border: none;
   border-radius: 12px;
   background: #0a0a0a;
+  display: block;
+}
+
+/* Live metrics row above the Grafana iframe */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  gap: 4px;
+}
+
+.metric-value {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  letter-spacing: -0.02em;
+}
+
+.metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 560px) {
+  .metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .drift-panel {
